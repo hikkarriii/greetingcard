@@ -5,6 +5,10 @@
 const $  = (s, p = document) => p.querySelector(s);
 const $$ = (s, p = document) => [...p.querySelectorAll(s)];
 
+/* Определяем iOS один раз — на нём нельзя менять громкость из JS */
+const IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+               (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
 /* ---------- СЦЕНЫ ---------- */
 const scenes = $$('.scene');
 let currentScene = 'scene-intro';
@@ -72,7 +76,8 @@ function fadeTo(audio, target, duration){
 
   target = Math.max(0, Math.min(1, target));
 
-  if (duration <= 0){
+  if (duration <= 0 || IS_IOS){
+    // на iOS всё равно не сработает — не тратим время
     audio.volume = target;
     return;
   }
@@ -103,11 +108,34 @@ function crossfadeTo(src, volume, duration){
   const cur = activeAudio;
   const nxt = otherAudio;
 
+  // Уже играет этот же трек — ничего не делаем
   if (cur.dataset.src === src && !cur.paused){
     currentVol = targetVol;
     return;
   }
 
+  /* ---------- iOS: без плавности, но чисто ---------- */
+  if (IS_IOS){
+    try {
+      cur.pause();
+      cur.currentTime = 0;
+    } catch(e){}
+
+    nxt.dataset.src = src;
+    nxt.src = src;
+    nxt.volume = 1;   // iOS игнорирует volume, но пусть будет
+    nxt.currentTime = 0;
+
+    const p = nxt.play();
+    if (p) p.catch(() => {});
+
+    activeAudio = nxt;
+    otherAudio  = cur;
+    currentVol  = targetVol;
+    return;
+  }
+
+  /* ---------- Остальные: плавный кроссфейд ---------- */
   nxt.dataset.src = src;
   nxt.src = src;
   nxt.volume = 0;
@@ -117,9 +145,16 @@ function crossfadeTo(src, volume, duration){
   if (playPromise) playPromise.catch(() => {});
 
   fadeTo(cur, 0, dur);
+
+  // Жёстко глушим старый трек через dur секунд — не полагаемся на volume
   setTimeout(() => {
-    if (cur.volume < 0.01) cur.pause();
-  }, dur * 1000 + 50);
+    try {
+      if (cur !== activeAudio){
+        cur.pause();
+        cur.currentTime = 0;
+      }
+    } catch(e){}
+  }, dur * 1000 + 100);
 
   fadeTo(nxt, targetVol, dur);
 
@@ -147,39 +182,51 @@ function getTrackForScene(sceneId){
   });
 });
 
+/* ---------- КНОПКА ПЛЕЙ/ПАУЗ ---------- */
 musicBtn.addEventListener('click', () => {
   if (activeAudio.paused){
-    activeAudio.volume = 0;
-    activeAudio.play().then(() => {
-      fadeTo(activeAudio, currentVol, 0.6);
-      musicBtn.classList.add('playing');
-    }).catch(() => {});
+    if (IS_IOS){
+      activeAudio.play().then(() => {
+        musicBtn.classList.add('playing');
+      }).catch(() => {});
+    } else {
+      activeAudio.volume = 0;
+      activeAudio.play().then(() => {
+        fadeTo(activeAudio, currentVol, 0.6);
+        musicBtn.classList.add('playing');
+      }).catch(() => {});
+    }
   } else {
-    fadeTo(activeAudio, 0, 0.4);
-    setTimeout(() => activeAudio.pause(), 400);
+    if (IS_IOS){
+      activeAudio.pause();
+    } else {
+      fadeTo(activeAudio, 0, 0.4);
+      setTimeout(() => activeAudio.pause(), 400);
+    }
     musicBtn.classList.remove('playing');
   }
 });
 
+/* ---------- СТАРТ ПО КНОПКЕ «НАЧАТЬ» ---------- */
 $('#startBtn').addEventListener('click', () => {
   const first = getTrackForScene('scene-intro')
              || (Array.isArray(CONFIG.music) ? CONFIG.music[0] : null);
 
-  // если музыка уже играет — не перезапускаем, просто показываем кнопку
+  // если музыка уже играет — не перезапускаем
   if (!musicEnabled && first){
     musicEnabled = true;
     activeAudio.dataset.src = first.src;
     activeAudio.src = first.src;
-    activeAudio.volume = 0;
+    activeAudio.volume = IS_IOS ? 1 : 0;
 
     activeAudio.play().then(() => {
-      fadeTo(activeAudio, first.volume ?? 0.45, 1.5);
+      if (!IS_IOS) fadeTo(activeAudio, first.volume ?? 0.45, 1.5);
       currentVol = first.volume ?? 0.45;
       musicBtn.classList.add('playing', 'show');
     }).catch(() => {
       musicBtn.classList.add('show');
     });
-  } else if (first && !musicBtn.classList.contains('show')) {
+  } else if (first && !musicBtn.classList.contains('show')){
     musicBtn.classList.add('show');
   }
 
@@ -223,7 +270,6 @@ CONFIG.timeline.forEach(item => {
   $('.tl-title',  el).textContent = item.title;
   $('.tl-text p', el).textContent = item.text;
 
-  // если стикер не загрузился — прячем блок
   const stImg = $('.tl-sticker img', el);
   if (stImg){
     stImg.addEventListener('error', () => {
@@ -401,10 +447,10 @@ loop();
 
     activeAudio.dataset.src = first.src;
     activeAudio.src = first.src;
-    activeAudio.volume = 0;
+    activeAudio.volume = IS_IOS ? 1 : 0;
 
     activeAudio.play().then(() => {
-      fadeTo(activeAudio, first.volume ?? 0.45, 1.2);
+      if (!IS_IOS) fadeTo(activeAudio, first.volume ?? 0.45, 1.2);
       currentVol = first.volume ?? 0.45;
       musicBtn.classList.add('playing', 'show');
     }).catch(() => {
