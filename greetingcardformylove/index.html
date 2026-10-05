@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#07060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Для тебя ❤</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<canvas id="fx"></canvas>
+
+<audio id="bgMusicA" loop preload="auto"></audio>
+<audio id="bgMusicB" loop preload="auto"></audio>
+
+<button class="music-btn" id="musicBtn" aria-label="Включить/выключить музыку">
+  <span class="eq"><i></i><i></i><i></i></span>
+</button>
+
+<section class="scene active" id="scene-intro">
+  <div class="scene-inner">
+    <div class="intro-date" id="introDate"></div>
+    <h1 class="intro-line" id="introLine"></h1>
+    <p class="intro-sub" id="introSub"></p>
+    <button class="btn" id="startBtn">
+      <span id="startBtnText"></span> <span>→</span>
+    </button>
+    <button class="secret-star" style="left:8%; top:16%;" data-secret-key="s1">✦</button>
+    <button class="secret-star" style="right:11%; top:26%;" data-secret-key="s2">✦</button>
+  </div>
+</section>
+
+<section class="scene" id="scene-envelope">
+  <div class="scene-inner" style="display:flex; flex-direction:column; align-items:center;">
+    <div class="envelope-wrap">
+      <div class="envelope" id="envelope">
+        <div class="env-back"></div>
+        <div class="env-letter">❤</div>
+        <div class="env-front"></div>
+        <div class="env-flap"></div>
+      </div>
+      <div class="env-hint" id="envHint"></div>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="scene-letter">
+  <div class="scene-inner">
+    <div class="letter-card">
+      <h2 class="letter-title" id="letterTitle"></h2>
+      <div class="letter-text" id="letterText"></div>
+      <div class="letter-sign" id="letterSign"></div>
+    </div>
+    <div style="text-align:center;">
+      <button class="btn" data-next="scene-timeline" id="toTimelineBtn"></button>
+    </div>
+  </div>
+</section>
+
+<section class="scene" id="scene-timeline">
+  <div class="scene-inner">
+    <h2 class="section-title" id="timelineTitle"></h2>
+    <p class="section-sub" id="timelineSub"></p>
+    <div class="timeline" id="timeline"></div>
+    <div style="text-align:center; margin-top: 20px;">
+      <button class="btn" data-next="scene-photos" id="toPhotosBtn"></button>
+    </div>
+    <button class="secret-star" style="left:4%; top:6%;" data-secret-key="s3">✦</button>
+  </div>
+</section>
+
+<section class="scene" id="scene-photos">
+  <div class="scene-inner">
+    <h2 class="section-title" id="photosTitle"></h2>
+    <p class="section-sub" id="photosSub"></p>
+    <div class="gallery" id="gallery"></div>
+    <div style="text-align:center; margin-top: 50px;">
+      <button class="btn" data-next="scene-final-btn" id="toFinalBtn"></button>
+    </div>
+    <button class="secret-star" style="right:6%; top:4%;" data-secret-key="s4">✦</button>
+  </div>
+</section>
+
+<section class="scene" id="scene-final-btn">
+  <div class="scene-inner" style="text-align:center;">
+    <button class="btn" id="finaleBtn" style="margin-top:0; font-size:.8rem;">
+      <span id="finaleBtnText"></span>
+    </button>
+  </div>
+</section>
+
+<section class="scene" id="scene-finale">
+  <div class="finale-hearts" id="finaleHearts"></div>
+  <div class="scene-inner">
+    <h2 class="finale-title" id="finaleTitle"></h2>
+    <p class="finale-text" id="finaleText"></p>
+    <div class="finale-sign" id="finaleSign"></div>
+  </div>
+</section>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose">×</button>
+  <img id="lightboxImg" src="" alt="">
+  <div class="lightbox-caption" id="lightboxCaption"></div>
+  <div class="lightbox-note" id="lightboxNote"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="veil"></div>
+
+<script src="content.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
